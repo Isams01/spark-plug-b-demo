@@ -1,0 +1,20 @@
+{
+  "name": "sparkplugb",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "mqtt": "^5.10.2",
+    "nanoid": "^5.0.8",
+    "protobufjs": "^7.4.0",
+    "rxjs": "^7.8.1",
+    "sparkplug-client": "^3.2.4"
+  },
+  "type": "module"
+}
