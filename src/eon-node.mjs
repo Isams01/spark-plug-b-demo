@@ -6,11 +6,15 @@
 import SparkplugClient from "sparkplug-client";
 import { nanoid } from "nanoid";
 import {interval} from "rxjs";
+import config from 'config';
+
+const username = config.get('username');
+const password = config.get('password');
 // start with connect
-const config = {
+const mqttConfig = {
   serverUrl: "tcp://localhost:1883",
-  username: "admin",
-  password: "masterkey",
+  username: username,
+  password: password,
   groupId: "Sparkplug",
   edgeNode: "EDGE",
   clientId: "myclientid",
@@ -197,7 +201,7 @@ const deviceId = "my device";
 const hwVersion = "1.0.0";
 const swVersion = "1.0.0";
 
-const sparkplugClient = SparkplugClient.newClient(config);
+const sparkplugClient = SparkplugClient.newClient(mqttConfig);
 const eonNode = new EonNode();
 const device = new Device();
 
