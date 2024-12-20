@@ -5,15 +5,20 @@
 
 import SparkplugClient from "sparkplug-client";
 import { nanoid } from "nanoid";
+import {interval} from "rxjs";
 // start with connect
 const config = {
   serverUrl: "tcp://localhost:1883",
   username: "admin",
   password: "masterkey",
-  groupId: "Sparkplug Devices",
-  edgeNode: "my edge node",
+  groupId: "Sparkplug",
+  edgeNode: "EDGE",
   clientId: "myclientid",
   version: "spBv1.0",
+};
+
+const randomInt = function () {
+  return 1 + Math.floor(Math.random() * 10);
 };
 
 class EonNode {
@@ -63,140 +68,138 @@ class EonNode {
 
   handleNCMD(payload) {
     var timestamp = payload.timestamp,
-    metrics = payload.metrics;
+      metrics = payload.metrics;
 
-  console.log("ncmd received", metrics);
-  if (metrics !== undefined && metrics !== null) {
-    for (var i = 0; i < metrics.length; i++) {
-      var metric = metrics[i];
-      if (metric.name == "Node Control/Rebirth" && metric.value) {
-        // Publish Node BIRTH certificate
-        sparkplugClient.publishNodeBirth(nodeBirthPayload);
-        // Publish Device BIRTH certificate
-        // sparkplugClient.publishDeviceBirth(deviceId, getDeviceBirthPayload());
-      }
-      if (metric.name === "Node Control/Interval") {
-        this.interval = metric.value;
+    console.log("ncmd received", metrics);
+    if (metrics !== undefined && metrics !== null) {
+      for (var i = 0; i < metrics.length; i++) {
+        var metric = metrics[i];
+        const nodeBirthPayload = this.getNodeBirthPayload();
+        if (metric.name == "Node Control/Rebirth" && metric.value) {
+          // Publish Node BIRTH certificate
+          sparkplugClient.publishNodeBirth(nodeBirthPayload);
+          // Publish Device BIRTH certificate
+          // sparkplugClient.publishDeviceBirth(deviceId, getDeviceBirthPayload());
+        }
+        if (metric.name === "Node Control/Interval") {
+          this.interval = metric.value;
+        }
       }
     }
   }
+}
+
+class Device {
+  constructor() {}
+  deviceId = "my device";
+  inputs1 = 0;
+  myDouble = Math.random() * 0.123456789;
+  myFloat = Math.random() * 0.123;
+  myInt = randomInt();
+  getDeviceBirthPayload() {
+    return {
+      timestamp: new Date().getTime(),
+      metrics: [
+        { name: "output", value: this.myInt, type: "int", timestamp: new Date().getTime() },
+        { name: 'my_arr',
+          type: 'dataset',
+          dataset_value: {
+            'number_of_colums': 2,
+            "types" : [ "int", "double" ],
+            "columns" : [ "t", "y" ],
+            "rows" : [
+              [ new Date().getTime(), 0.123456789],
+              [ new Date().getTime(), 1.123456789 ]
+            ]
+          },
+          value: {
+            'numOfColumns': 2,
+            "types" : [ "int", "float" ],
+            "columns" : [ "t", "y" ],
+              "rows" : [ 
+                  [ new Date().getTime(), 0.123456789],
+                  [ new Date().getTime(), 1.123456789 ]
+              ]
+          }
+        },
+      ],
+    };
+  }
+
+  getDataPayload() {
+    // this.inputs1 = randomInt();
+    // this.myBool = Math.random() > 0.5
+    // this.myDouble = Math.random() * 0.123456789
+    // this.myFloat = Math.random() * 0.123
+    this.myInt = randomInt();
+    const rowCount = randomInt();
+    const rows = [];
+    for (let i = 0; i < rowCount; i++) {
+      rows.push([new Date().getTime(), Math.random() * 0.123456789]);
+    }
+
+    return {
+      timestamp: new Date().getTime(),
+      metrics: [
+        // { name: "Inputs/1", value: this.inputs1, type: "int" },
+        // { name: "my_boolean", value: this.myBool, type: "boolean" },
+        // {
+        //   name: "my_double",
+        //   value: this.myDouble,
+        //   type: "double",
+        // },
+        // { name: "my_float", value: this.myFloat, type: "float" },
+        { name: "output", value: this.myInt, type: "int", timestamp: new Date().getTime() },
+        {
+          name: 'my_arr',
+          type: 'dataset',
+          value: {
+            'numOfColumns': 2,
+            "types" : [ "int", "double" ],
+            "columns" : [ "t", "y" ],
+            "rows" : rows
+          },
+          timestamp: new Date().getTime()
+        },
+      ],
+    };
+  }
+
+  handleDCMD(payload) {
+    var timestamp = payload.timestamp;
+    const metrics = payload.metrics;
+    console.log("dcmd received", metrics);
+    // if (metrics !== undefined && metrics !== null) {
+    //   for (var i = 0; i < metrics.length; i++) {
+    //     var metric = metrics[i];
+    //     if (metric.name == "Node Control/Rebirth" && metric.value) {
+    //       console.log("Received 'Rebirth' command");
+    //       // Publish Node BIRTH certificate
+    //       sparkplugClient.publishNodeBirth(device.getNodeBirthPayload());
+    //       // Publish Device BIRTH certificate
+    //       sparkplugClient.publishDeviceBirth(deviceId, getDeviceBirthPayload());
+    //     }
+    //     if (metric.name === "Node Control/Emit interval") {
+    //       console.log("Received 'Emit interval' command");
+    //       // change device emit interval
+    //     }
+    //   }
+    // }
   }
 }
 
-const deviceId = 'my device';
-
-//   timestamp: new Date().getTime(),
-//   metrics: [
-//     {
-//       name: "Node Control/Reboot",
-//       type: "boolean",
-//       value: false,
-//     },
-//     {
-//       name: "Node Control/Rebirth",
-//       type: "boolean",
-//       value: false,
-//     },
-//     {
-//       name: "Node Control/Interval",
-//       type: "int",
-//       value: 2000,
-//     },
-//     {
-//       name: "Node Control/Scan rate",
-//       type: "boolean",
-//       value: true,
-//     },
-//     {
-//       name: "Node Control/my_bool",
-//       type: "boolean",
-//       value: false,
-//     },
-//     {
-//       name: "Properties/hardware_version",
-//       type: "string",
-//       value: "test-hardware-version",
-//     },
-//   ],
-// };
+const deviceId = "my device";
 
 
 // Generates a random integer
-const randomInt = function () {
-  return 1 + Math.floor(Math.random() * 10);
-};
+
 
 const hwVersion = "1.0.0";
 const swVersion = "1.0.0";
 
-const deviceBirthPayload = {
-  timestamp: new Date().getTime(),
-  metrics: [
-    { name: "my_boolean", value: Math.random() > 0.5, type: "boolean" },
-    { name: "my_double", value: Math.random() * 0.123456789, type: "double" },
-    { name: "my_float", value: Math.random() * 0.123, type: "float" },
-    { name: "my_int", value: randomInt(), type: "int" },
-    { name: "my_long", value: randomInt() * 214748364700, type: "long" },
-    { name: "Inputs/0", value: true, type: "boolean" },
-    { name: "Inputs/1", value: 0, type: "int" },
-    { name: "Inputs/2", value: 1.23, type: "float" },
-    { name: "Outputs/0", value: true, type: "boolean" },
-    { name: "Outputs/1", value: 0, type: "int" },
-    { name: "Outputs/2", value: 1.23, type: "float" },
-    { name: "Properties/hw_version", value: hwVersion, type: "string" },
-    { name: "Properties/sw_version", value: swVersion, type: "string" },
-    {
-      "name": "Device Control/Reboot",
-      "type": "boolean",
-      "value": false,
-    },
-    {
-      "name": "Device Control/Rebirth",
-      "type": "boolean",
-      "value": false,
-    },
-    {
-      name: "Device Control/Scan rate",
-      type: "int",
-      value: 3000,
-    },
-    {
-      name: "my_dataset",
-      type: "dataset",
-      value: {
-        numOfColumns: 2,
-        types: ["string", "string"],
-        columns: ["str1", "str2"],
-        rows: [
-          ["x", "a"],
-          ["y", "b"],
-        ],
-      },
-    },
-    {
-      name: "TemplateInstance1",
-      type: "template",
-      value: {
-        templateRef: "Template1",
-        isDefinition: false,
-        metrics: [
-          { name: "myBool", value: true, type: "boolean" },
-          { name: "myInt", value: 100, type: "int" },
-        ],
-        parameters: [
-          {
-            name: "param1",
-            type: "string",
-            value: "value2",
-          },
-        ],
-      },
-    },
-  ],
-};
-
 const sparkplugClient = SparkplugClient.newClient(config);
 const eonNode = new EonNode();
+const device = new Device();
 
 // Create 'birth' handler
 sparkplugClient.on("birth", function () {
@@ -204,7 +207,10 @@ sparkplugClient.on("birth", function () {
   console.log("publishing node birth");
   sparkplugClient.publishNodeBirth(eonNode.getNodeBirthPayload());
   // Publish Device BIRTH certificate
+  const deviceBirthPayload = device.getDeviceBirthPayload();
+  console.log('device birth', deviceBirthPayload);
   sparkplugClient.publishDeviceBirth(deviceId, deviceBirthPayload);
+  
 });
 
 sparkplugClient.on("ncmd", function (payload) {
@@ -213,22 +219,12 @@ sparkplugClient.on("ncmd", function (payload) {
 });
 
 sparkplugClient.on("dcmd", function (payload) {
-  const metrics = payload.metrics;
-  console.log("dcmd received", metrics);
-  if (metrics !== undefined && metrics !== null) {
-    for (var i = 0; i < metrics.length; i++) {
-      var metric = metrics[i];
-      if (metric.name == "Node Control/Rebirth" && metric.value) {
-        console.log("Received 'Rebirth' command");
-        // Publish Node BIRTH certificate
-        sparkplugClient.publishNodeBirth(getNodeBirthPayload());
-        // Publish Device BIRTH certificate
-        sparkplugClient.publishDeviceBirth(deviceId, getDeviceBirthPayload());
-      }
-      if (metric.name === "Node Control/Emit interval") {
-        console.log("Received 'Emit interval' command");
-        // change device emit interval
-      }
-    }
-  }
+  device.handleDCMD(payload);
 });
+
+interval(5000).subscribe(() => {
+  const payload = device.getDataPayload();
+  console.log('publishing device data', payload);
+  sparkplugClient.publishDeviceData(deviceId, payload);
+  // sparkplugClient.publishDeviceBirth(deviceId, device.getDeviceBirthPayload());
+})
