@@ -82,3 +82,13 @@ metrics.
   - Used to transmit the hardware model of the device
 - Metric name: ‘Properties/FW’
   - Used to transmit the firmware version of the device
+
+### NCMD
+
+the important point to realize is that the metrics exposed in the Primary Application for use in the design of
+applications are completely determined by what metric information is published in the NBIRTH. Each specific EoN
+node can best determine what data to expose, and how to expose it, and it will automatically appear in the
+Primary Application metric structure. Metrics can even be added dynamically at runtime and with a new NBIRTH.
+These metrics will automatically be added to the Primary Application metric structure
+
+- NCMD messages should follow up with a new node birth
